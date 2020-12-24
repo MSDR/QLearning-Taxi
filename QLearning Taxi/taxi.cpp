@@ -21,7 +21,7 @@ Taxi::Taxi(const intMatrix &board, const int &x, const int &y) :
 	getNewDest();
 }
 
-const int Taxi::getQState() const {
+int Taxi::getQState() const {
 	int N =									 std::pow(numTileStates, 0)+board_[y_-1][x_];
 	int S =									 std::pow(numTileStates, 1)+board_[y_+1][x_];
 	int E =                           std::pow(numTileStates, 2)+board_[y_][x_-1];
@@ -31,6 +31,29 @@ const int Taxi::getQState() const {
 	int distDestY = (board_.size()-3)*std::pow(numTileStates, 5)+(destY_ - y_);
 
 	return N+S+E+W+C+distDestX+distDestY;
+}
+
+std::ostream& operator<<(std::ostream& out, Actions a) {
+	switch (a) {
+	case MOVE_N: out << "MOVE_N  "; break;
+	case MOVE_S: out << "MOVE_S  "; break;
+	case MOVE_E: out << "MOVE_E  "; break;
+	case MOVE_W: out << "MOVE_W  "; break;
+	case PICK_UP: out << "PICK_UP "; break;
+	case DROP_OFF: out << "DROP_OFF"; break;
+
+	default: out << int(a); break;
+	}
+	return out;
+}
+
+void Taxi::printQValues(int qState) const {
+	if(qState == -1) qState = getQState(); //the default
+	std::cout << "qState: " << qState << "\n";
+	for(int action = 0; action < qTable_[qState].size(); ++action) {
+		std::cout << " |Action: " << Actions(action) << " |qValue: " << (qTable_[qState][action] < 0 ? "" : " ") << qTable_[qState][action] << "\n"; 
+	}
+	std::cout << std::endl;
 }
 
 void Taxi::executeAction(const int &action) {
@@ -76,5 +99,3 @@ void Taxi::getNewDest() {
 			validSpot = true;
 	} while (!validSpot);
 }
-
-

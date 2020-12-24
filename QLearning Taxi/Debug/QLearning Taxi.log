@@ -1,11 +1,4 @@
-﻿  taxi.cpp
-c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\taxi.cpp(12): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\taxi.cpp(25): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\taxi.cpp(26): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\taxi.cpp(27): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\taxi.cpp(28): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\taxi.cpp(29): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\taxi.cpp(30): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\taxi.cpp(31): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\taxi.cpp(65): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+﻿  main.cpp
+c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\main.cpp(36): warning C4018: '<': signed/unsigned mismatch
+c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\main.cpp(38): warning C4018: '<': signed/unsigned mismatch
   QLearning Taxi.vcxproj -> C:\Users\Mason\Documents\Winter2020Projects\QLearning Taxi\Debug\QLearning Taxi.exe

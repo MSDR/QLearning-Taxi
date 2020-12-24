@@ -17,6 +17,7 @@ enum TileStates {
 enum Actions {
 	MOVE_N, MOVE_S, MOVE_E, MOVE_W, PICK_UP, DROP_OFF
 };
+std::ostream& operator<<(std::ostream& out, Actions a);
 
 enum Rewards {
 	MOVE = -1, CRASH = -10, CORRECT_PASSENGER_ACTION = 20, INCORRECT_PASSENGER_ACTION = -20, MISSED_PASSENGER_ACTION = -5
@@ -27,7 +28,8 @@ public:
 	Taxi(const int &x = 1, const int &y = 1) : x_(x), y_(y) {} //don't ever use this, it's really just here to satisfy the compiler.
 	Taxi(const intMatrix &board, const int &x = 1, const int &y = 1);
 
-	const int getQState() const;
+	int getQState() const;
+	void printQValues(int qState = -1) const;
 
 	void executeAction(const int &action);
 
@@ -40,7 +42,7 @@ public:
 private:
 	intMatrix board_;
 
-
 	void getNewDest();
 };
 #endif
+
