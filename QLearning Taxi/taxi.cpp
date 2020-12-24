@@ -85,7 +85,6 @@ void Taxi::executeAction(const int &action) {
 void Taxi::getNewDest() {
 	pickUpMode_ = !pickUpMode_;
 	//establish first pickup
-	srand(time(NULL));
 	bool validSpot = false;
 	do {
 		destX_ = rand()%(board_.size()-3)+1;

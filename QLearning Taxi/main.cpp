@@ -66,7 +66,7 @@ void timeStep(const intMatrix &board, Taxi &taxi, const double &randomActionChan
 	//select action in qState -- either random or max(qValue at qState) -- and move the taxi accordingly
 	std::vector<double>::iterator maxQValueAction = std::max_element(taxi.qTable_[qState].begin(), taxi.qTable_[qState].end());
 	int action; 
-	if((rand() % 100) / 100 < randomActionChance) {
+	if((rand() % 100) / 100.0 < randomActionChance) {
 		action = rand()%taxi.numActions; //chooses random action
 		std::cout << "Chose action randomly.";
 	} else {
@@ -96,7 +96,7 @@ void timeStep(const intMatrix &board, Taxi &taxi, const double &randomActionChan
 		reward += MISSED_PASSENGER_ACTION;
 		if (printInfo) std::cout << "Missed a passenger action. Reward: " << MISSED_PASSENGER_ACTION << std::endl;
 	} 
-	if ((taxi.x_ != taxi.destX_ && taxi.y_ != taxi.destY_ && action == (taxi.pickUpMode_ ? PICK_UP : DROP_OFF)) || //pickup/drop off at wrong location
+	if ((taxi.x_ != taxi.destX_ && taxi.y_ != taxi.destY_ && (action == PICK_UP || action == DROP_OFF)) || //pickup/drop off at wrong location
 		 (taxi.x_ == taxi.destX_ && taxi.y_ == taxi.destY_ && action == (taxi.pickUpMode_ ? DROP_OFF : PICK_UP))) { //executed wrong passenger action, right location
 		reward += INCORRECT_PASSENGER_ACTION;
 		if (printInfo) std::cout << "Incorrect passenger action. Reward: " << INCORRECT_PASSENGER_ACTION << std::endl;
@@ -117,8 +117,7 @@ void timeStep(const intMatrix &board, Taxi &taxi, const double &randomActionChan
 		nextMaxQValue = *std::max_element(taxi.qTable_[nextQState].begin(), taxi.qTable_[nextQState].end());
 	}
 	//Q(state, action) = (1-learnRate)+learnRate(reward+discountFactor*max(Q(next state, all actions))) 
-	taxi.qTable_[qState][action] = (1.0-learnRate) + learnRate*(reward + discountFactor*nextMaxQValue);
-	std::cout << "\n" << (1.0 - learnRate) + learnRate * (reward + discountFactor * nextMaxQValue) << std::endl;
+	taxi.qTable_[qState][action] = ((1.0-learnRate)*taxi.qTable_[qState][action] + (learnRate*((double)reward + discountFactor*nextMaxQValue)));
 	if (printInfo) {
 		std::cout << "Updated qValues:\n";
 		taxi.printQValues(qState);
@@ -133,6 +132,8 @@ int main(int argc, char* argv[]) {
 	std::cout << "File: " << boardFilename << "\n";
 	std::pair<int, int> taxiStart;
 
+	srand(time(NULL));
+
 	try {
 		initBoard(boardFilename, board, taxiStart);
 		taxi = Taxi(board);
@@ -142,10 +143,10 @@ int main(int argc, char* argv[]) {
 	}
 	printBoard(board, taxi, true);
 	
-	for (int epoch = 0; epoch < 10; ++epoch) {
+	for (int epoch = 0; epoch < 1000000; ++epoch) {
 		try {
 			printBoard(board, taxi, false); 
-			timeStep(board, taxi, 0.1, 0.5, 0.5, true);
+			timeStep(board, taxi, 0.1, 0.5, 0.5, false);
 		} catch (const char* errorMsg) {
 			std::cerr << errorMsg << std::endl;
 		}
