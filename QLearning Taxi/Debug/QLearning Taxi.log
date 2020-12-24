@@ -1,4 +1,4 @@
 ﻿  main.cpp
-c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\main.cpp(36): warning C4018: '<': signed/unsigned mismatch
-c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\main.cpp(38): warning C4018: '<': signed/unsigned mismatch
+c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\main.cpp(33): warning C4018: '<': signed/unsigned mismatch
+c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\main.cpp(35): warning C4018: '<': signed/unsigned mismatch
   QLearning Taxi.vcxproj -> C:\Users\Mason\Documents\Winter2020Projects\QLearning Taxi\Debug\QLearning Taxi.exe

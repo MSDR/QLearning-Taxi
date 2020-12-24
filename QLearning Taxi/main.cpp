@@ -1,8 +1,5 @@
 #include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
-typedef std::vector<std::vector<int>> intMatrix;
+#include "taxi.h"
 
 void initBoard(const std::string &filename, intMatrix &board, std::pair<int, int> &taxiStart) {
 	std::ifstream reader;
@@ -32,17 +29,28 @@ void initBoard(const std::string &filename, intMatrix &board, std::pair<int, int
 		throw "Taxi start coordinates not given or are invalid.";
 }
 
-void printBoard(const intMatrix &board) {
+void printBoard(const intMatrix &board, const Taxi &taxi) {
 	for (int i = 0; i < board.size(); ++i) {
 		std::cout << "|";
-		for(int k = 0; k < board[i].size(); ++k) {
-			std::cout << board[i][k] << (k == board[i].size() - 1 ? "" : " ");
+		for(int j = 0; j < board[i].size(); ++j) {
+			char outChar = ' ';
+			if (taxi.destX_ == j && taxi.destY_ == i) {
+				outChar = taxi.pickUpMode_ ? 'p' : 'd';
+				if (taxi.x_ == j && taxi.y_ == i) outChar -= 32;
+
+			}	else if (taxi.x_ == j && taxi.y_ == i)
+				outChar = 'T';
+			else if (board[i][j] == BUILDING)
+				outChar = '#';
+				
+			std::cout << outChar << (j == board[i].size() - 1 ? "" : " ");
 		}
 		std::cout << "|" << (i == board.size()-1 ? "" : "\n");
 	}
 }
 
 int main(int argc, char* argv[]) {
+	Taxi taxi;
 	intMatrix board;
 	std::string boardFilename = argc > 1 ? argv[1] : "board.txt";
 	std::cout << "File: " << boardFilename << "\n";
@@ -50,10 +58,11 @@ int main(int argc, char* argv[]) {
 
 	try {
 		initBoard(boardFilename, board, taxiStart);
+		taxi = Taxi(board);
 	} catch (const char* errorMsg) {
 		std::cerr << errorMsg;
 		return(1);
 	}
-	printBoard(board);
-	
+	printBoard(board, taxi);
+	std::cout << taxi.getQState();
 }
