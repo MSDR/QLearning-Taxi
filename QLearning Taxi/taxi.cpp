@@ -22,12 +22,12 @@ Taxi::Taxi(const intMatrix &board, const int &x, const int &y) :
 
 const int Taxi::getQState() const {
 	int N =                                     board_[y_-1][x_];
-	int S =                                   2*board_[y_+1][x_];
-	int E =                                 2*2*board_[y_][x_-1];
-	int W =                               2*2*2*board_[y_][x_+1];
-	int C =                             2*2*2*2*board_[y_][x_];
-	int distDestX =                   2*2*2*2*2*(destX_ - x_);
-	int distDestY = 2*2*2*2*2*(board_.size()-3)*(destY_ - y_);
+	int S =                                   2+board_[y_+1][x_];
+	int E =                                 2*2+board_[y_][x_-1];
+	int W =                               2*2*2+board_[y_][x_+1];
+	int C =                             2*2*2*2+board_[y_][x_];
+	int distDestX =                   2*2*2*2*2+(destX_ - x_);
+	int distDestY = 2*2*2*2*2*(board_.size()-3)+(destY_ - y_);
 
 	return N+S+E+W+C+distDestX+distDestY;
 }
