@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cmath>
 #include <fstream>
 #include "taxi.h"
 
@@ -29,7 +31,8 @@ void initBoard(const std::string &filename, intMatrix &board, std::pair<int, int
 		throw "Taxi start coordinates not given or are invalid.";
 }
 
-void printBoard(const intMatrix &board, const Taxi &taxi) {
+void printBoard(const intMatrix &board, const Taxi &taxi, const bool &printQValues) {
+	std::cout << std::endl;
 	for (int i = 0; i < board.size(); ++i) {
 		std::cout << "|";
 		for(int j = 0; j < board[i].size(); ++j) {
@@ -47,6 +50,62 @@ void printBoard(const intMatrix &board, const Taxi &taxi) {
 		}
 		std::cout << "|" << (i == board.size()-1 ? "" : "\n");
 	}
+	std::cout << std::endl;
+
+	if (printQValues) {
+		int qState = taxi.getQState();
+		std::cout << "qState: " << qState << " qValues: ";
+		for(int action = 0; action < taxi.qTable_[qState].size(); ++action) {
+			std::cout << taxi.qTable_[qState][action] << " "; 
+		}
+		std::cout << std::endl;
+	}
+}
+
+void timeStep(const intMatrix &board, Taxi &taxi, const double &randomActionChance, const double &learnRate, const double &discountFactor, const bool &printInfo = false) {
+	if (randomActionChance < 0.0 || randomActionChance > 1.0) throw "randomActionChance out of range. make sure 0 <= randomActionChance <= 1.\n";
+	if (learnRate < 0.0 || learnRate > 1.0) throw "learnRate out of range. make sure 0 <= learnRate <= 1.\n";
+	if (discountFactor < 0.0 || discountFactor > 1.0) throw "discountFactor out of range. make sure 0 <= discountFactor <= 1.\n";
+
+	//get qState of taxi
+	int qState = taxi.getQState();
+
+	//select action in qState -- either random or max(qValue at qState) -- and move the taxi accordingly
+	std::vector<double>::iterator maxQValueAction = std::max_element(taxi.qTable_[qState].begin(), taxi.qTable_[qState].end());
+	int action = ((rand()%100)/100 < randomActionChance) ? 
+		rand()%taxi.numActions : //chooses random action
+		std::distance(taxi.qTable_[qState].begin(), maxQValueAction); //chooses action with max qValue
+	if (printInfo) std::cout << "Action: " << action << std::endl;
+
+	bool crashed = false; //used for nextMaxQValue calculation
+
+	//calculate reward
+	int reward = MOVE; //the default
+	if ((action == MOVE_N && board[taxi.y_ - 1][taxi.x_] == BUILDING) ||
+		 (action == MOVE_S && board[taxi.y_ + 1][taxi.x_] == BUILDING) ||
+		 (action == MOVE_E && board[taxi.y_][taxi.x_ + 1] == BUILDING) ||
+		 (action == MOVE_W && board[taxi.y_][taxi.x_ - 1] == BUILDING)) {
+		reward += CRASH;
+		crashed = true;
+	}
+	if (taxi.x_ == taxi.destX_ && taxi.y_ == taxi.destY_ && action != (taxi.pickUpMode_ ? PICK_UP : DROP_OFF))
+		reward += MISSED_PASSENGER_ACTION;
+	if (taxi.x_ != taxi.destX_ && taxi.y_ != taxi.destY_ && action == (taxi.pickUpMode_ ? PICK_UP : DROP_OFF))
+		reward += INCORRECT_PASSENGER_ACTION;
+	if (taxi.x_ == taxi.destX_ && taxi.y_ == taxi.destY_ && action == (taxi.pickUpMode_ ? PICK_UP : DROP_OFF))
+		reward = CORRECT_PASSENGER_ACTION; //note that this overrides any other mistakes on that turn, maybe reconsider if more features added later
+
+	//update qValue of previous state using qValue of current state
+	double nextMaxQValue = 0.0;
+	if (crashed) //then taxi's next state is identical
+		nextMaxQValue = *maxQValueAction;
+	else { //taxi's next state is changed, so we have to recalculate
+		taxi.executeAction(action);
+		int nextQState = taxi.getQState();
+		nextMaxQValue = *std::max_element(taxi.qTable_[nextQState].begin(), taxi.qTable_[nextQState].end());
+	}
+	//Q(state, action) = (1-learnRate)+learnRate(reward+discountFactor*max(Q(next state, all actions))) 
+	taxi.qTable_[qState][action] = (1.0-learnRate) + learnRate*(reward + discountFactor*nextMaxQValue);
 }
 
 int main(int argc, char* argv[]) {
@@ -60,9 +119,18 @@ int main(int argc, char* argv[]) {
 		initBoard(boardFilename, board, taxiStart);
 		taxi = Taxi(board);
 	} catch (const char* errorMsg) {
-		std::cerr << errorMsg;
+		std::cerr << errorMsg << std::endl;
 		return(1);
 	}
-	printBoard(board, taxi);
-	std::cout << taxi.getQState();
+	printBoard(board, taxi, true);
+	
+	for (int epoch = 0; epoch < 10; ++epoch) {
+		try {
+			timeStep(board, taxi, 0.1, 0.5, 0.5, true);
+			printBoard(board, taxi, true); 
+		} catch (const char* errorMsg) {
+			std::cerr << errorMsg << std::endl;
+		}
+	}
+
 }

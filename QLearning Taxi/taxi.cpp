@@ -8,8 +8,9 @@ Taxi::Taxi(const intMatrix &board, const int &x, const int &y) :
 	}
 
 	//initialize qTable to 0's
-	int numStates = 2*2*2*2*2 * board_.size()-3 * board_[0].size()-3; //board_.size()-3 is because the walls take up 2 spaces, distance of 0 being possible takes up 1
-	int numActions = 6;
+	numTileStates = 2;
+	numStates = std::pow(numTileStates, 5) * board_.size()-2 * board_[0].size()-2; //board_.size()-2 is because the walls take up 2 spaces
+	numActions = 6;
 	for (int state = 0; state < numStates; ++state) {
 		qTable_.push_back(std::vector<double>());
 		for (int action = 0; action < numActions; ++action) {
@@ -21,15 +22,41 @@ Taxi::Taxi(const intMatrix &board, const int &x, const int &y) :
 }
 
 const int Taxi::getQState() const {
-	int N =                                     board_[y_-1][x_];
-	int S =                                   2+board_[y_+1][x_];
-	int E =                                 2*2+board_[y_][x_-1];
-	int W =                               2*2*2+board_[y_][x_+1];
-	int C =                             2*2*2*2+board_[y_][x_];
-	int distDestX =                   2*2*2*2*2+(destX_ - x_);
-	int distDestY = 2*2*2*2*2*(board_.size()-3)+(destY_ - y_);
+	int N =									 std::pow(numTileStates, 0)+board_[y_-1][x_];
+	int S =									 std::pow(numTileStates, 1)+board_[y_+1][x_];
+	int E =                           std::pow(numTileStates, 2)+board_[y_][x_-1];
+	int W =                           std::pow(numTileStates, 3)+board_[y_][x_+1];
+	int C =                           std::pow(numTileStates, 4)+board_[y_][x_];
+	int distDestX =                   std::pow(numTileStates, 5)+(destX_ - x_);
+	int distDestY = (board_.size()-3)*std::pow(numTileStates, 5)+(destY_ - y_);
 
 	return N+S+E+W+C+distDestX+distDestY;
+}
+
+void Taxi::executeAction(const int &action) {
+	switch (action) {
+	case MOVE_N:
+		y_--;
+		break;
+	case MOVE_S:
+		y_++;
+		break;
+	case MOVE_W:
+		x_--;
+		break;
+	case MOVE_E:
+		x_++;
+		break;
+	case PICK_UP:
+		getNewDest();
+		break;
+	case DROP_OFF:
+		getNewDest();
+		break;
+	default:
+		throw "Unknown action.";
+		break;
+	}
 }
 
 void Taxi::getNewDest() {
@@ -43,9 +70,9 @@ void Taxi::getNewDest() {
 		if (board_[destY_][destX_] != EMPTY)
 			validSpot = false;
 		else if (board_[destY_-1][destX_] == BUILDING || //spot must be adjacent to a building
-			board_[destY_+1][destX_] == BUILDING ||
-			board_[destY_][destX_-1] == BUILDING ||
-			board_[destY_][destX_+1] == BUILDING)
+					board_[destY_+1][destX_] == BUILDING ||
+					board_[destY_][destX_-1] == BUILDING ||
+					board_[destY_][destX_+1] == BUILDING)
 			validSpot = true;
 	} while (!validSpot);
 }
