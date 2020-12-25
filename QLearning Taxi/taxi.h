@@ -20,7 +20,7 @@ enum Actions {
 std::ostream& operator<<(std::ostream& out, Actions a);
 
 enum Rewards {
-	MOVE = -1, CRASH = -10, CORRECT_PASSENGER_ACTION = 20, INCORRECT_PASSENGER_ACTION = -20, MISSED_PASSENGER_ACTION = -5
+	MOVE = -1, CRASH = -5, CORRECT_PASSENGER_ACTION = 20, INCORRECT_PASSENGER_ACTION = -20, MISSED_PASSENGER_ACTION = -10
 };
 
 class Taxi {

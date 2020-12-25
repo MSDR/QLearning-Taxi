@@ -1,5 +1,5 @@
 ﻿  main.cpp
 c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\main.cpp(36): warning C4018: '<': signed/unsigned mismatch
 c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\main.cpp(38): warning C4018: '<': signed/unsigned mismatch
-c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\main.cpp(135): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\mason\documents\winter2020projects\qlearning taxi\qlearning taxi\main.cpp(145): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
   QLearning Taxi.vcxproj -> C:\Users\Mason\Documents\Winter2020Projects\QLearning Taxi\Debug\QLearning Taxi.exe

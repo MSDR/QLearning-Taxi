@@ -2,7 +2,7 @@
 #include <cmath>
 #include <fstream>
 #include "taxi.h"
-
+ 
 void initBoard(const std::string &filename, intMatrix &board, std::pair<int, int> &taxiStart) {
 	std::ifstream reader;
 	reader.open(filename);
@@ -48,11 +48,43 @@ void printBoard(const intMatrix &board, const Taxi &taxi, const bool &printQValu
 				
 			std::cout << outChar << (j == board[i].size() - 1 ? "" : " ");
 		}
-		std::cout << "|" << (i == board.size()-1 ? "" : "\n");
+		std::cout << "|";
+		if (i == (board.size() / 2) - 1) std::cout << "   N";
+		if (i == board.size() / 2)       std::cout << "  W E";
+		if (i == (board.size() / 2) + 1) std::cout << "   S";
+		std::cout << (i == board.size() - 1 ? "" : "\n");
 	}
 	std::cout << std::endl;
 
 	if (printQValues) taxi.printQValues();
+}
+
+double calculateReward(const intMatrix &board, const Taxi &taxi, const int &action, bool* crashed = nullptr, const bool &printInfo = false) {
+	int reward = MOVE; //the default
+	if ((action == MOVE_N && board[taxi.y_ - 1][taxi.x_] == BUILDING) ||
+		(action == MOVE_S && board[taxi.y_ + 1][taxi.x_] == BUILDING) ||
+		(action == MOVE_E && board[taxi.y_][taxi.x_ + 1] == BUILDING) ||
+		(action == MOVE_W && board[taxi.y_][taxi.x_ - 1] == BUILDING)) {
+		reward += CRASH;
+		if(crashed != nullptr) *crashed = true;
+		if (printInfo) std::cout << "Crashed! Reward: " << CRASH << std::endl;
+	}
+	if (taxi.x_ == taxi.destX_ && taxi.y_ == taxi.destY_ && action != (taxi.pickUpMode_ ? PICK_UP : DROP_OFF)) {
+		reward += MISSED_PASSENGER_ACTION;
+		if (printInfo) std::cout << "Missed a passenger action. Reward: " << MISSED_PASSENGER_ACTION << std::endl;
+	} 
+	if (((taxi.x_ != taxi.destX_ || taxi.y_ != taxi.destY_) && (action == PICK_UP || action == DROP_OFF)) || //pickup/drop off at wrong location
+		  (taxi.x_ == taxi.destX_ && taxi.y_ == taxi.destY_  &&  action == (taxi.pickUpMode_ ? DROP_OFF : PICK_UP))) { //executed wrong passenger action, right location
+		reward += INCORRECT_PASSENGER_ACTION;
+		if (printInfo) std::cout << "Incorrect passenger action. Reward: " << INCORRECT_PASSENGER_ACTION << std::endl;
+	}
+	if (taxi.x_ == taxi.destX_ && taxi.y_ == taxi.destY_ && action == (taxi.pickUpMode_ ? PICK_UP : DROP_OFF)) {
+		reward = CORRECT_PASSENGER_ACTION; //note that this overrides any other mistakes on that turn, maybe reconsider if more features added later
+		if (printInfo) std::cout << "Correct passenger action! Reward: " << CORRECT_PASSENGER_ACTION << std::endl;
+	}
+	if (printInfo) std::cout << "Total reward: " << reward << std::endl << std::endl;
+
+	return reward;
 }
 
 void timeStep(const intMatrix &board, Taxi &taxi, const double &randomActionChance, const double &learnRate, const double &discountFactor, const bool &printInfo = false) {
@@ -68,14 +100,14 @@ void timeStep(const intMatrix &board, Taxi &taxi, const double &randomActionChan
 	int action; 
 	if((rand() % 100) / 100.0 < randomActionChance) {
 		action = rand()%taxi.numActions; //chooses random action
-		std::cout << "Chose action randomly.";
+		if (printInfo) std::cout << "Chose action randomly.";
 	} else {
 		action = std::distance(taxi.qTable_[qState].begin(), maxQValueAction); //chooses action with max qValue
-		std::cout << "Chose action selectively.";
+		if (printInfo) std::cout << "Chose action selectively.";
 	}
-	std::cout << " Action chosen: " << Actions(action) << std::endl << std::endl; 
 
 	if (printInfo) {
+		std::cout << " Action chosen: " << Actions(action) << std::endl << std::endl; 
 		std::cout << "Current state qValues:\n";
 		taxi.printQValues();
 	}
@@ -83,29 +115,7 @@ void timeStep(const intMatrix &board, Taxi &taxi, const double &randomActionChan
 	bool crashed = false; //used for nextMaxQValue calculation
 
 	//calculate reward
-	int reward = MOVE; //the default
-	if ((action == MOVE_N && board[taxi.y_ - 1][taxi.x_] == BUILDING) ||
-		 (action == MOVE_S && board[taxi.y_ + 1][taxi.x_] == BUILDING) ||
-		 (action == MOVE_E && board[taxi.y_][taxi.x_ + 1] == BUILDING) ||
-		 (action == MOVE_W && board[taxi.y_][taxi.x_ - 1] == BUILDING)) {
-		reward += CRASH;
-		crashed = true;
-		if (printInfo) std::cout << "Crashed! Reward: " << CRASH << std::endl;
-	}
-	if (taxi.x_ == taxi.destX_ && taxi.y_ == taxi.destY_ && action != (taxi.pickUpMode_ ? PICK_UP : DROP_OFF)) {
-		reward += MISSED_PASSENGER_ACTION;
-		if (printInfo) std::cout << "Missed a passenger action. Reward: " << MISSED_PASSENGER_ACTION << std::endl;
-	} 
-	if ((taxi.x_ != taxi.destX_ && taxi.y_ != taxi.destY_ && (action == PICK_UP || action == DROP_OFF)) || //pickup/drop off at wrong location
-		 (taxi.x_ == taxi.destX_ && taxi.y_ == taxi.destY_ && action == (taxi.pickUpMode_ ? DROP_OFF : PICK_UP))) { //executed wrong passenger action, right location
-		reward += INCORRECT_PASSENGER_ACTION;
-		if (printInfo) std::cout << "Incorrect passenger action. Reward: " << INCORRECT_PASSENGER_ACTION << std::endl;
-	}
-	if (taxi.x_ == taxi.destX_ && taxi.y_ == taxi.destY_ && action == (taxi.pickUpMode_ ? PICK_UP : DROP_OFF)) {
-		reward = CORRECT_PASSENGER_ACTION; //note that this overrides any other mistakes on that turn, maybe reconsider if more features added later
-		if (printInfo) std::cout << "Correct passenger action! Reward: " << CORRECT_PASSENGER_ACTION << std::endl;
-	}
-	if (printInfo) std::cout << "Total reward: " << reward << std::endl << std::endl;
+	double reward = calculateReward(board, taxi, action, &crashed, printInfo);
 
 	//update qValue of previous state using qValue of current state
 	double nextMaxQValue = 0.0;
@@ -143,12 +153,18 @@ int main(int argc, char* argv[]) {
 	}
 	printBoard(board, taxi, true);
 	
-	for (int epoch = 0; epoch < 1000000; ++epoch) {
-		try {
-			printBoard(board, taxi, false); 
-			timeStep(board, taxi, 0.1, 0.5, 0.5, false);
-		} catch (const char* errorMsg) {
-			std::cerr << errorMsg << std::endl;
+	while(true) {
+		std::string in;
+		std::cin >> in;
+		if (in == "q") break;
+		for (int epoch = 0; epoch < 1000000; ++epoch) {
+			try {
+				if(1000000-epoch < 20) printBoard(board, taxi, false); 
+				timeStep(board, taxi, 0.1, 0.4, 0.6, (1000000-epoch < 20 ? true : false));
+			} catch (const char* errorMsg) {
+				std::cerr << errorMsg << std::endl;
+			}
+			if (epoch % 50000 == 0) std::cout << "epoch " << epoch << std::endl;
 		}
 	}
 

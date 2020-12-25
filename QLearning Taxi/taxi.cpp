@@ -9,7 +9,7 @@ Taxi::Taxi(const intMatrix &board, const int &x, const int &y) :
 
 	//initialize qTable to 0's
 	numTileStates = 2;
-	numStates = std::pow(numTileStates, 5) * board_.size()-2 * board_[0].size()-2; //board_.size()-2 is because the walls take up 2 spaces
+	numStates = std::pow(numTileStates, 4) * ((board_.size()-3)*2+1) * ((board_[0].size()-3)*2+1); //board_.size()-2 is because the walls take up 2 spaces
 	numActions = 6;
 	for (int state = 0; state < numStates; ++state) {
 		qTable_.push_back(std::vector<double>());
@@ -26,11 +26,10 @@ int Taxi::getQState() const {
 	int S =									 std::pow(numTileStates, 1)+board_[y_+1][x_];
 	int E =                           std::pow(numTileStates, 2)+board_[y_][x_-1];
 	int W =                           std::pow(numTileStates, 3)+board_[y_][x_+1];
-	int C =                           std::pow(numTileStates, 4)+board_[y_][x_];
-	int distDestX =                   std::pow(numTileStates, 5)+(destX_ - x_);
-	int distDestY = (board_.size()-3)*std::pow(numTileStates, 5)+(destY_ - y_);
+	int distDestX =                   std::pow(numTileStates, 4)+(destX_ - x_ + board_[0].size()-3);
+	int distDestY = ((board_[0].size()-3)*2+1)*std::pow(numTileStates, 4)+(destY_ - y_ + board_.size()-3); //board.size()-2 is the max distDestX possible
 
-	return N+S+E+W+C+distDestX+distDestY;
+	return N+S+E+W+distDestX+distDestY;
 }
 
 std::ostream& operator<<(std::ostream& out, Actions a) {
